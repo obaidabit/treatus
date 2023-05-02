@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Home</title>
+    <link rel="stylesheet" href="bootstrap/css/bootstrap.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css"
+      integrity="sha512-MV7K8+y+gLIBoVD59lQIYicR65iaqukzvf/nwasF0nqhPay5w/9lJmVM2hMDcnK1OnMGCdVK+iQrJ7lzPJQd1w=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <link rel="stylesheet" href="css/main.css" />
+    <link rel="manifest" href="manifest.json" />
+    <link rel="icon" type="image/x-icon" href="/img/favicon.ico" />
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-main sticky-top">
+      <a class="navbar-brand d-flex align-item-center" href="/home">
+        <img src="img/logo_h_light.svg" alt="logo" />
+      </a>
+
+      <div class="ml-auto order-lg-2">
+        <div class="btn-group">
+          <button
+            type="button"
+            class="btn btn-light text-main dropdown-toggle"
+            data-toggle="dropdown"
+            aria-haspopup="true"
+            aria-expanded="false"
+          >
+            <i class="fa-solid fa-user"></i>
+            <span id="username"></span>
+          </button>
+          <div class="dropdown-menu" style="left: auto; right: 0">
+            <a href="/profile" class="dropdown-item" type="button">Profile</a>
+            <button id="logoutbutton" class="dropdown-item" type="button">
+              logout
+            </button>
+          </div>
+        </div>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-toggle="collapse"
+          data-target="#navbarSupportedContent"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+      </div>
+
+      <div
+        class="collapse navbar-collapse order-lg-1"
+        id="navbarSupportedContent"
+      >
+        <ul class="navbar-nav mr-auto">
+          <li class="nav-item">
+            <a class="nav-link text-white" href="/home">
+              <i class="fa-solid fa-house" style="font-size: 17px"></i>
+              Home <span class="sr-only">(current)</span></a
+            >
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-white" href="/doctors">
+              <i class="fa-solid fa-syringe" style="font-size: 18px"></i>
+              Doctors</a
+            >
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-white" href="/diseases">
+              <i class="fa-solid fa-square-virus" style="font-size: 19px"></i>
+              Diseases</a
+            >
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-white" href="/medicines">
+              <i class="fa-solid fa-capsules" style="font-size: 17px"></i>
+              Medicines</a
+            >
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <div class="container">
+      <div class="row mt-4">
+        <div class="col-sm-12 col-lg-3 mb-3">
+          <h3 class="mb-3 text-main">Home</h3>
+          <a class="btn btn-main btn-block" href="/addNewPatient"
+            >Add new patient</a
+          >
+          <a class="btn btn-main btn-block" href="/patientsList"
+            >Patient List</a
+          >
+          <a class="btn btn-main btn-block" href="/appointments"
+            >Appointments</a
+          >
+        </div>
+        <div class="col-sm-12 col-lg-9">
+          <h3 class="mb-3 text-main">Today Appointments</h3>
+          <div id="appo" class="row"></div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="bg-main mt-5 py-4">
+      <div class="container">
+        <div class="row">
+          <div class="col-sm-12 col-md-4 col-lg-3 mb-3 text-center">
+            <a class="text-light" href="#">
+              <img style="height: 80px" src="img/logo_light.svg" alt="logo" />
+            </a>
+          </div>
+          <div
+            class="col-sm-12 col-md-8 col-lg-5 d-flex flex-md-row flex-column text-center align-items-center justify-content-between"
+          >
+            <a class="text-light" href="#">About Us</a>
+            <a class="text-light" href="#">Contact</a>
+            <a class="text-light" href="#">Privacy Policy</a>
+            <a class="text-light" href="#">Terms of Service</a>
+          </div>
+          <div class="col-sm-12 col-md-12 col-lg-4"></div>
+          <div class="col-12">
+            <hr style="border-color: white" />
+            <p class="text-white small text-center">
+              TreatUs © 2018-2023. All Rights Reserved
+            </p>
+          </div>
+        </div>
+      </div>
+    </footer>
+    <script src="js/doctor home.js"></script>
+    <script src="js/navbar.js"></script>
+    <script src="js/main.js"></script>
+    <script src="bootstrap/js/jquery-3.6.1.min.js"></script>
+    <script src="bootstrap/js/popper.min.js"></script>
+    <script src="bootstrap/js/bootstrap.js"></script>
+  </body>
+</html>

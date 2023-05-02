@@ -1,0 +1,63 @@
+@import url("https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Roboto:300,300i,400,400i,500,500i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i");
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url("/img/background.png") !important;
+  background-repeat: no-repeat;
+  background-position: center;
+  z-index: -1;
+  opacity: 0.1;
+}
+
+body {
+  font-family: "Roboto", sans-serif;
+}
+body > .container {
+  min-height: 68.5vh;
+}
+
+.bg-main {
+  background-color: #236c93;
+}
+
+.bg-main-light {
+  background-color: lightblue;
+}
+
+.border-main {
+  border: 1px solid #236c93;
+  border-radius: 3px;
+}
+.text-main {
+  color: #236c93;
+}
+
+.btn-main {
+  background-color: #236c93;
+  border-color: #236c93;
+  color: white;
+}
+
+.btn-main:hover {
+  background-color: #2383b6;
+  border-color: #2383b6;
+  color: white;
+}
+
+.card-link {
+  color: #236c93;
+}
+
+.navbar.navbar-expand-lg.navbar-dark.bg-main a img {
+  width: 120px;
+}
+
+@media screen and (max-width: 370px) {
+  .navbar.navbar-expand-lg.navbar-dark.bg-main a img {
+    width: 100px;
+  }
+}
