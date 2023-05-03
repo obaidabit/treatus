@@ -68,6 +68,6 @@ app.use("/potions", potionsRouter);
 app.use("/potion_logs", potionLogsRouter);
 app.use("/subscribe", subscribeRouter);
 
-app.listen(5000, () => {
+app.listen(process.env.PORT || 5000, () => {
   console.log("Server is running");
 });
