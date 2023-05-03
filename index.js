@@ -6,6 +6,8 @@ const cookieParser = require("cookie-parser");
 const app = express();
 dotenv.config();
 
+process.env.TZ = "Etc/GMT-3";
+
 const { checkLogin } = require("./middleware/auth");
 const patientsRouter = require("./src/patients");
 const doctorsRouter = require("./src/doctors");
