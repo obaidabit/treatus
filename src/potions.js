@@ -38,7 +38,7 @@ router.get("/todayPotions", authPatients, async (req, res) => {
       SELECT p.*,m.name FROM potion AS p
       INNER JOIN patient_medicine AS pm 
       ON p.medicine_id = pm.id 
-      INNER JOIN medicine AS M 
+      INNER JOIN medicine AS m 
       ON pm.medicine_id = m.id 
       WHERE p.patient_id = ?
       AND ((

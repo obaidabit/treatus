@@ -20,6 +20,12 @@ document.getElementById("filterappo").addEventListener("click", () => {
     .then((res) => res.json())
     .then((appo) => {
       appo.forEach((element) => {
+        if (element.date && typeof element.date == "string") {
+          const dateObj = new Date(element.date);
+          date = `${dateObj.getFullYear()}-${
+            dateObj.getMonth() + 1
+          }-${dateObj.getDate()}`;
+        }
         const newappo = document.createElement("div");
         newappo.id = element.id;
         newappo.className = "col-sm-12 col-lg-4 mb-3";
@@ -27,9 +33,9 @@ document.getElementById("filterappo").addEventListener("click", () => {
         <div class="card-body">
           <div class="d-flex justify-content-between">
             <h5 class="card-title">${element.start_time}</h5>
-            <h5 class="card-title">${element.date}</h5>
+            <h5 class="card-title">${date}</h5>
           </div>
-          <h6 class="card-subtitle mb-2 text-muted">${element.full_name}</h6>
+          <h6 class="card-subtitle mb-2 text-capitalize text-muted">${element.full_name}</h6>
           <button data-appoid="${element.id}" class=" btn p-0 bg-transparent cancelappo card-link text-danger">Cancel</button>
         </div>
       </div>`;

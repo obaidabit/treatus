@@ -32,7 +32,8 @@ fetch(`patients/info?patientId=${url.get("patientId")}`)
     document.getElementById("address").innerText = patientdata.address;
     document.getElementById("email").innerText = patientdata.email;
     document.getElementById("phone").innerText = patientdata.phone;
-    document.getElementById("image").src = patientdata.image;
+    if (patientdata.image)
+      document.getElementById("image").src = patientdata.image;
   });
 
 function getDiseases(patient_id) {

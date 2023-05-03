@@ -73,6 +73,12 @@ fetch("appointments/patient/weekappointments")
       document.getElementById("appointments").appendChild(noapp);
     }
     data.forEach((app) => {
+      if (app.date && typeof app.date == "string") {
+        const dateObj = new Date(app.date);
+        date = `${dateObj.getFullYear()}-${
+          dateObj.getMonth() + 1
+        }-${dateObj.getDate()}`;
+      }
       const App = document.createElement("div");
       App.className = "col-sm-12 col-lg-4 mb-3";
       App.dataset.id = app.id;
@@ -80,7 +86,7 @@ fetch("appointments/patient/weekappointments")
       <div class="card-body">
         <div class="d-flex justify-content-between">
           <h5 class="card-title">${app.start_time}</h5>
-          <h5 class="card-title">${app.date}</h5>
+          <h5 class="card-title">${date}</h5>
         </div>
         <h6 class="card-subtitle mb-2 text-muted">${app.full_name}</h6>
         <button class="btn card-link cancel text-danger bg-transparent p-0 " data-appointmentid='${app.id}' >Cancel</button>

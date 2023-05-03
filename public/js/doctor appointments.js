@@ -1,5 +1,12 @@
 function viewappointments(data) {
   data.forEach((element) => {
+    let date = "";
+    if (element.date && typeof element.date == "string") {
+      const dateObj = new Date(element.date);
+      date = `${dateObj.getFullYear()}-${
+        dateObj.getMonth() + 1
+      }-${dateObj.getDate()}`;
+    }
     const newappo = document.createElement("div");
     newappo.id = element.id;
     newappo.className = "col-sm-12 col-lg-4 mb-3";
@@ -7,7 +14,7 @@ function viewappointments(data) {
         <div class="card-body">
           <div class="d-flex justify-content-between">
             <h5 class="card-title">${element.start_time}</h5>
-            <h5 class="card-title">${element.date}</h5>
+            <h5 class="card-title">${date}</h5>
           </div>
           <h6 class="card-subtitle mb-2 text-muted">${element.full_name}</h6>
           <a href="/viewAppointment?appid=${element.id}" class="card-link text-main">View</a>

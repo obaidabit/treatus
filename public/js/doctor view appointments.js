@@ -242,8 +242,15 @@ let patient_id;
 fetch(`appointments/info?appointmentId=${url.get("appid")}`)
   .then((res) => res.json())
   .then((data) => {
+    if (data.date && typeof data.date == "string") {
+      const dateObj = new Date(data.date);
+      date = `${dateObj.getFullYear()}-${
+        dateObj.getMonth() + 1
+      }-${dateObj.getDate()}`;
+    }
+
     document.getElementById("time").innerText = data.start_time;
-    document.getElementById("date").innerText = data.date;
+    document.getElementById("date").innerText = date;
     document.getElementById("doctornotes").value = data.notes;
     patient_id = data.patient_id;
     document.getElementById(

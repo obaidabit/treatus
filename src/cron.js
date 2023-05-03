@@ -23,7 +23,15 @@ function sendNotification(subscriptionData, messageData) {
 }
 
 async function scheduleAppointmentNotification(appointment, patient_id) {
-  const time = moment(`${appointment.date} ${appointment.start_time}`)
+  let timeString = "";
+  if (typeof appointment.date === "string")
+    timeString = `${appointment.date} ${appointment.start_time}`;
+  else
+    timeString = `${appointment.date.getFullYear()}-${
+      appointment.date.getMonth() + 1
+    }-${appointment.date.getDate()} ${appointment.start_time}`;
+
+  const time = moment(timeString, "YYYY-MM-DD HH:mm:ss")
     .utcOffset(3)
     .subtract(30, "minute");
 
