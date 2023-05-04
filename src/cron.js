@@ -24,14 +24,17 @@ function sendNotification(subscriptionData, messageData) {
 
 async function scheduleAppointmentNotification(appointment, patient_id) {
   let timeString = "";
+  const hour = appointment.start_time.split(":")[0];
+  const timeFormat = parseInt(hour) < 5 ? "PM" : "AM";
+
   if (typeof appointment.date === "string")
-    timeString = `${appointment.date} ${appointment.start_time}`;
+    timeString = `${appointment.date} ${appointment.start_time} ${timeFormat}`;
   else
     timeString = `${appointment.date.getFullYear()}-${
       appointment.date.getMonth() + 1
-    }-${appointment.date.getDate()} ${appointment.start_time}`;
+    }-${appointment.date.getDate()} ${appointment.start_time} ${timeFormat}`;
 
-  const time = moment(timeString, "YYYY-MM-DD HH:mm:ss")
+  const time = moment(timeString, "YYYY-MM-DD HH:mm:ss A")
     .utcOffset(3)
     .subtract(30, "minute");
 
@@ -66,11 +69,13 @@ async function scheduleAppointmentNotification(appointment, patient_id) {
       "M"
     )} *`,
     () => {
+      console.log("Sinding Notification");
       sendNotification(subscriptionData, messageData);
     },
     { name: `app-${appointment.id}` }
   );
 }
+
 async function schedulePotionNotification(potion, patient_id) {
   const time = moment(potion.time, "HH:mm:ss").utcOffset(3);
   const result = await pool.query(
@@ -147,11 +152,8 @@ async function schedulePotionNotification(potion, patient_id) {
 }
 
 function deleteNotification(name) {
-  console.log(name);
-  console.log(cron.getTasks().keys());
   cron.getTasks().get(name)?.stop();
   cron.getTasks().delete(name);
-  console.log(cron.getTasks().keys());
 }
 
 function updatePotionNotification(name, potion, patient_id) {
