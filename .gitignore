@@ -7,3 +7,4 @@ test.js
 *.txt
 *.sql
 insert data.js
+/android

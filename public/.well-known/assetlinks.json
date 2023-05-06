@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "app.cyclic.treatus",
+      "sha256_cert_fingerprints": [
+        "32:E7:D1:9B:17:94:85:4D:09:73:88:D0:44:6B:D4:5D:48:13:88:F5:D4:23:11:F8:1D:94:08:8B:31:14:3B:6F"
+      ]
+    }
+  }
+]
