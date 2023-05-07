@@ -113,10 +113,17 @@ document.getElementById("doctorname").addEventListener("change", () => {
     .then((data) => {
       document.getElementById("doctorsnotes").innerHTML = "";
       data.forEach((note) => {
+        let date = "";
+        if (note.date) {
+          const appDate = new Date(note.date);
+          date = `${appDate.getFullYear()}-${
+            appDate.getMonth() + 1
+          }-${appDate.getDate()}`;
+        }
         const doctorsnotes = document.createElement("div");
         doctorsnotes.className = `col-sm-12 col-md-6 col-lg-6 mb-4`;
         doctorsnotes.innerHTML = `<div class="card">
-        <div class="card-header">Dr.${note.full_name} &nbsp;&nbsp;&nbsp; ${note.date}</div>
+        <div class="card-header">Dr.${note.full_name} &nbsp;&nbsp;&nbsp; ${date}</div>
         <div class="card-body">
         ${note.notes}
         </div>

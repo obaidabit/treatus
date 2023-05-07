@@ -42,13 +42,13 @@ async function uploadImg(imgPath) {
 router.get("/latest", authDoctors, async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT p.*,
-        CASE WHEN dp.doctor_id = ? THEN 'true' ELSE 'false'
-        END AS 'is_my_patient'
+      `SELECT DISTINCT p.*,
+            CASE WHEN dp.doctor_id = ? THEN 'true' ELSE 'false' END AS 'is_my_patient'
       FROM patient AS p
-      LEFT JOIN doctor_patient AS dp ON p.id = dp.patient_id
-      ORDER BY id DESC LIMIT 8`,
-      [req.token.id]
+      LEFT JOIN doctor_patient AS dp ON p.id = dp.patient_id AND dp.doctor_id = ?
+      ORDER BY p.id DESC
+      LIMIT 8`,
+      [req.token.id, req.token.id]
     );
     res.json(result[0]);
   } catch (error) {
@@ -203,10 +203,10 @@ router.get("/all/search", authDoctors, async (req, res) => {
         CASE WHEN dp.doctor_id = ? THEN 'true' ELSE 'false'
         END AS 'is_my_patient'
       FROM patient AS p
-      LEFT JOIN doctor_patient AS dp ON p.id = dp.patient_id
+      LEFT JOIN doctor_patient AS dp ON p.id = dp.patient_id AND dp.doctor_id = ?
       WHERE full_name like CONCAT('%', ? ,'%') 
       LIMIT 20`,
-      [req.token.id, req.query.text]
+      [req.token.id, req.token.id, req.query.text]
     );
 
     res.json(result[0]);
