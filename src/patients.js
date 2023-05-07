@@ -91,7 +91,7 @@ const updateSchema = Joi.object({
   height: Joi.number().integer().max(300),
   weight: Joi.number().integer().max(500),
   bloodtype: Joi.string().min(2).max(3),
-  address: Joi.string().min(10).max(200),
+  address: Joi.string().min(5).max(200),
   email: Joi.string().email().required(),
 });
 

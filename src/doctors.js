@@ -161,7 +161,7 @@ router.get("/specialization/all", authPatients, async (req, res) => {
 
 const updateSchema = Joi.object({
   fullname: Joi.string().min(5).max(50).required(),
-  address: Joi.string().min(10).max(200),
+  address: Joi.string().min(5).max(200),
   email: Joi.string().email().required(),
 });
 
