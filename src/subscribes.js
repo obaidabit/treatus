@@ -1,7 +1,4 @@
 const express = require("express");
-const webpush = require("web-push");
-const cron = require("node-cron");
-const moment = require("moment-timezone");
 const { authPatients } = require("../middleware/auth");
 const pool = require("../database");
 const {
@@ -11,25 +8,6 @@ const {
 const router = express.Router();
 
 let subscribers = [];
-
-function sendNotification(subscriptionData, messageData) {
-  const vapidKeys = {
-    publicKey: process.env.VAPID_PUBLIC_KEY,
-    privateKey: process.env.VAPID_PRIVATE_KEY,
-    subject: "mailto:obedabit1999@gmail.com",
-  };
-
-  webpush
-    .sendNotification(subscriptionData, JSON.stringify(messageData), {
-      vapidDetails: vapidKeys,
-    })
-    .then((response) => {
-      //   console.log(response);
-    })
-    .catch((error) => {
-      console.log(error);
-    });
-}
 
 async function setupAllPatientNotifications() {
   try {
@@ -47,6 +25,7 @@ async function setupAllPatientNotifications() {
       SELECT * FROM appointment
       `
     );
+
     for (let potion of result[0]) {
       schedulePotionNotification(
         {
@@ -76,8 +55,8 @@ router.post("/", authPatients, async (req, res) => {
 
   try {
     const result = await pool.query(
-      "SELECT id FROM subscriptions WHERE patient_id=?",
-      [req.token.id]
+      "SELECT id FROM subscriptions WHERE patient_id=? AND endpoint=?",
+      [req.token.id, endpoint]
     );
 
     if (result[0].length > 0)

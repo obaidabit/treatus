@@ -49,105 +49,177 @@ async function scheduleAppointmentNotification(appointment, patient_id) {
 
   if (result[0].length === 0) return;
 
-  const subscriptionData = {
-    endpoint: result[0][0].endpoint,
-    keys: {
-      p256dh: result[0][0].p256dh,
-      auth: result[0][0].auth,
-    },
-  };
+  for (const res of result[0]) {
+    const subscriptionData = {
+      endpoint: res.endpoint,
+      keys: {
+        p256dh: res.p256dh,
+        auth: res.auth,
+      },
+    };
 
-  const messageData = {
-    title: "Appointment reminder",
+    const messageData = {
+      title: "Appointment reminder",
 
-    body: `You have Doctor Appointment at ${appointment.start_time} `,
-    url: "/appointments",
-  };
+      body: `You have Doctor Appointment at ${appointment.start_time} `,
+      url: "/appointments",
+    };
 
-  cron.schedule(
-    `${time.format("m")} ${time.format("H")} ${time.format("D")} ${time.format(
-      "M"
-    )} *`,
-    () => {
-      console.log("Sinding Notification");
-      sendNotification(subscriptionData, messageData);
-    },
-    { name: `app-${appointment.id}` }
-  );
+    cron.schedule(
+      `${time.format("m")} ${time.format("H")} ${time.format(
+        "D"
+      )} ${time.format("M")} *`,
+      () => {
+        console.log("Sinding Notification");
+        sendNotification(subscriptionData, messageData);
+      },
+      { name: `app-${appointment.id}` }
+    );
+  }
 }
 
 async function schedulePotionNotification(potion, patient_id) {
   const time = moment(potion.time, "HH:mm:ss").utcOffset(3);
-  const result = await pool.query(
-    "SELECT * FROM subscriptions WHERE patient_id=?",
-    [patient_id]
-  );
 
-  if (result[0].length === 0) return;
+  if (!potion.auth) {
+    const result = await pool.query(
+      "SELECT * FROM subscriptions WHERE patient_id=?",
+      [patient_id]
+    );
 
-  const subscriptionData = {
-    endpoint: result[0][0].endpoint,
-    keys: {
-      p256dh: result[0][0].p256dh,
-      auth: result[0][0].auth,
-    },
-  };
+    if (result[0].length === 0) return;
 
-  const messageData = {
-    title: "Your medication reminder",
-    body: `It is time to take your medication \n${potion.name}.`,
-    url: "/home",
-  };
-  const weekDays = [
-    "sunday",
-    "monday",
-    "tuesday",
-    "wednesday",
-    "thursday",
-    "friday",
-    "saturday",
-  ];
-
-  switch (potion.days) {
-    case "every day":
-      cron.schedule(
-        `${time.format("m")} ${time.format("H")} * * *`,
-        () => {
-          sendNotification(subscriptionData, messageData);
+    for (const res of result[0]) {
+      let subscriptionData = {
+        endpoint: res.endpoint,
+        keys: {
+          p256dh: res.p256dh,
+          auth: res.auth,
         },
-        { name: potion.id }
-      );
-      break;
-    case "every other day":
-      cron.schedule(
-        `${time.format("m")} ${time.format("H")} */2 * *`,
-        () => {
-          sendNotification(subscriptionData, messageData);
-        },
-        { name: potion.id }
-      );
-      break;
-    default:
-      const days = potion.days.split(",");
-      const cronDays = [];
+      };
 
-      for (let day of days) {
-        if (weekDays.includes(day)) {
-          cronDays.push(weekDays.indexOf(day));
-        }
+      const messageData = {
+        title: "Your medication reminder",
+        body: `It is time to take your medication \n${potion.name}.`,
+        url: "/home",
+      };
+      const weekDays = [
+        "sunday",
+        "monday",
+        "tuesday",
+        "wednesday",
+        "thursday",
+        "friday",
+        "saturday",
+      ];
+
+      switch (potion.days) {
+        case "every day":
+          cron.schedule(
+            `${time.format("m")} ${time.format("H")} * * *`,
+            () => {
+              sendNotification(subscriptionData, messageData);
+            },
+            { name: potion.id }
+          );
+          break;
+        case "every other day":
+          cron.schedule(
+            `${time.format("m")} ${time.format("H")} */2 * *`,
+            () => {
+              sendNotification(subscriptionData, messageData);
+            },
+            { name: potion.id }
+          );
+          break;
+        default:
+          const days = potion.days.split(",");
+          const cronDays = [];
+
+          for (let day of days) {
+            if (weekDays.includes(day)) {
+              cronDays.push(weekDays.indexOf(day));
+            }
+          }
+
+          const cronTime = `${time.format("m")} ${time.format(
+            "H"
+          )} * * ${cronDays.join(",")}`;
+          cron.schedule(
+            cronTime,
+            () => {
+              sendNotification(subscriptionData, messageData);
+            },
+            { name: potion.id }
+          );
+          break;
       }
+    }
+  } else {
+    let subscriptionData = {
+      endpoint: potion.endpoint,
+      keys: {
+        p256dh: potion.p256dh,
+        auth: potion.auth,
+      },
+    };
 
-      const cronTime = `${time.format("m")} ${time.format(
-        "H"
-      )} * * ${cronDays.join(",")}`;
-      cron.schedule(
-        cronTime,
-        () => {
-          sendNotification(subscriptionData, messageData);
-        },
-        { name: potion.id }
-      );
-      break;
+    const messageData = {
+      title: "Your medication reminder",
+      body: `It is time to take your medication \n${potion.name}.`,
+      url: "/home",
+    };
+    const weekDays = [
+      "sunday",
+      "monday",
+      "tuesday",
+      "wednesday",
+      "thursday",
+      "friday",
+      "saturday",
+    ];
+
+    switch (potion.days) {
+      case "every day":
+        cron.schedule(
+          `${time.format("m")} ${time.format("H")} * * *`,
+          () => {
+            sendNotification(subscriptionData, messageData);
+          },
+          { name: potion.id }
+        );
+        break;
+      case "every other day":
+        cron.schedule(
+          `${time.format("m")} ${time.format("H")} */2 * *`,
+          () => {
+            sendNotification(subscriptionData, messageData);
+          },
+          { name: potion.id }
+        );
+        break;
+      default:
+        const days = potion.days.split(",");
+        const cronDays = [];
+
+        for (let day of days) {
+          if (weekDays.includes(day)) {
+            cronDays.push(weekDays.indexOf(day));
+          }
+        }
+
+        const cronTime = `${time.format("m")} ${time.format(
+          "H"
+        )} * * ${cronDays.join(",")}`;
+        cron.schedule(
+          cronTime,
+          () => {
+            sendNotification(subscriptionData, messageData);
+          },
+          { name: potion.id }
+        );
+        break;
+    }
   }
 }
 

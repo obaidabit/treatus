@@ -228,7 +228,7 @@ router.post("/updatePotion", authDoctors, async (req, res) => {
     updatePotionNotification(
       parseInt(req.body.potionId),
       {
-        id: potionData[0][0].id,
+        id: req.body.potionId,
         time: potionData[0][0].time,
         name: potionName,
         days: potionData[0][0].days,
