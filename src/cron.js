@@ -10,6 +10,7 @@ function sendNotification(subscriptionData, messageData) {
     subject: "mailto:obedabit1999@gmail.com",
   };
 
+  console.log("SENDING Notification ", messageData.title);
   webpush
     .sendNotification(subscriptionData, JSON.stringify(messageData), {
       vapidDetails: vapidKeys,
