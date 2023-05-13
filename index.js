@@ -2,6 +2,7 @@ const express = require("express");
 const dotenv = require("dotenv");
 const path = require("path");
 const cookieParser = require("cookie-parser");
+const cron = require("node-cron");
 
 const app = express();
 dotenv.config();
@@ -72,4 +73,8 @@ app.use("/subscribe", subscribeRouter);
 
 app.listen(process.env.PORT || 5000, () => {
   console.log("Server is running");
+});
+
+cron.schedule("* * * * *", () => {
+  console.log("Cron Job is Working");
 });
