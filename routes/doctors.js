@@ -6,13 +6,7 @@ const pool = require("../database");
 const os = require("os");
 const path = require("path");
 const fs = require("fs");
-const {
-  authDoctorPatients,
-  authDoctors,
-  authDoctorInfo,
-  authPatients,
-  authPatientInfo,
-} = require("../middleware/auth");
+const { authDoctors, authPatients } = require("../middleware/auth");
 const multer = require("multer");
 
 const storage = multer.diskStorage({
@@ -52,6 +46,9 @@ router.get("/latest", authPatients, async (req, res) => {
   }
 });
 
+//STEP 1.1: a Route searching about doctors by Name or Specialization
+//          Case if searching by Name or specialization
+//          and update SQL query Based on Name or Specialization
 router.get("/search", authPatients, async (req, res) => {
   if (!req.query.text && !req.query.specialization) {
     return res.status(400).json({ msg: "Nothing to search" });
@@ -59,7 +56,9 @@ router.get("/search", authPatients, async (req, res) => {
 
   let spec = "";
   let name = "";
+  let addAndSQL = "";
   const values = [];
+
   if (req.query.text) {
     name = "full_name LIKE CONCAT('%', ? ,'%')";
     values.push(req.query.text);
@@ -68,11 +67,17 @@ router.get("/search", authPatients, async (req, res) => {
     spec = "specialization LIKE CONCAT('%', ? ,'%')";
     values.push(req.query.specialization);
   }
+
+  if (name && spec) {
+    addAndSQL = "AND";
+  } else {
+    addAndSQL = "";
+  }
+
   try {
     const result = await pool.query(
-      `SELECT * FROM doctor WHERE ${name} ${
-        name && spec ? "AND" : ""
-      } ${spec} ORDER BY id DESC LIMIT 50`,
+      `SELECT * FROM doctor 
+      WHERE ${name} ${addAndSQL} ${spec} ORDER BY id DESC LIMIT 50`,
       values
     );
 
@@ -99,15 +104,22 @@ router.get("/my_doctors", authPatients, async (req, res) => {
     res.status(500).json({ msg: "Something went wrong please try again" });
   }
 });
+//STEP 2.1: a Route that gives doctors information without permissions
+router.get("/patient_doctors", async (req, res) => {
+  let patientId;
 
-router.get("/patient", async (req, res) => {
+  if (req.query.patientId != "null") {
+    patientId = req.query.patientId;
+  } else {
+    patientId = req.token.id;
+  }
   try {
     const result = await pool.query(
       `SELECT d.* FROM doctor AS d
       INNER JOIN doctor_patient AS dp ON d.id = dp.doctor_id
       WHERE dp.patient_id = ? 
       `,
-      [req.query.patientId != "null" ? req.query.patientId : req.token.id]
+      [patientId]
     );
 
     res.json(result[0]);
@@ -231,7 +243,7 @@ router.post(
       }
     }
     try {
-      const result = await pool.query(sqlUpdate, values);
+      await pool.query(sqlUpdate, values);
       res.redirect("/profile");
     } catch (error) {
       console.error(error);

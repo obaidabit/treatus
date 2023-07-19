@@ -18,7 +18,9 @@ function getLatest() {
 function getSearch() {
   isSearch = true;
   fetch(
-    `patients/all/search?text=${document.getElementById("patsearch").value}`
+    `patients/allpatients/search?text=${
+      document.getElementById("patsearch").value
+    }`
   )
     .then((res) => res.json())
     .then((data) => {

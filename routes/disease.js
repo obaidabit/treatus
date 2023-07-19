@@ -1,10 +1,6 @@
 const express = require("express");
 const pool = require("../database");
-const {
-  authDoctors,
-  authPatientDoctors,
-  authPatients,
-} = require("../middleware/auth");
+const { authDoctors, authPatients } = require("../middleware/auth");
 
 const router = express.Router();
 
@@ -12,6 +8,8 @@ router.get("/search", async (req, res) => {
   if (!req.query.text) {
     return res.status(400).json({ msg: "Nothing to search" });
   }
+
+  //STEP 1.1: bring symptoms column AS JSON Data
 
   try {
     const result = await pool.query(
@@ -52,7 +50,9 @@ router.get("/new/search", authDoctors, async (req, res) => {
     res.status(500).json({ msg: "Something went wrong please try again" });
   }
 });
-
+//STEP 2.1: initialize pool connection and use it to execute the Transaction
+//          and use it to execute SQL queries
+//          and fix the result
 router.post("/addNewDisease", authDoctors, async (req, res) => {
   if (!req.body.diseaseId || !req.body.patientId) {
     return res.status(400).json({ msg: "Missing Data" });
@@ -108,6 +108,13 @@ router.get("/:id", async (req, res) => {
 });
 
 router.get("/patient/info", async (req, res) => {
+  let patientId;
+
+  if (req.query.patientId != "null") {
+    patientId = req.query.patientId;
+  } else {
+    patientId = req.token.id;
+  }
   try {
     const result = await pool.query(
       `
@@ -116,7 +123,7 @@ router.get("/patient/info", async (req, res) => {
         ON d.id = pd.disease_id 
         WHERE pd.patient_id = ?
         `,
-      [req.query.patientId != "null" ? req.query.patientId : req.token.id]
+      [patientId]
     );
 
     res.json(result[0]);
@@ -137,6 +144,7 @@ router.get("/patient/mydiseases", authPatients, async (req, res) => {
         `,
       [req.token.id]
     );
+
     if (result[0].length === 0)
       return res.status(400).json({ msg: "No Medicine" });
 

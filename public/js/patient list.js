@@ -57,14 +57,14 @@ function viewpatients(data) {
   });
 }
 
-fetch("patients/doctor/mypatients/")
+fetch("patients/doctor_patients/")
   .then((res) => res.json())
   .then((data) => {
     viewpatients(data);
   });
 document.getElementById("searchpatient").addEventListener("click", () => {
   fetch(
-    `patients/doctor/search?text=${
+    `patients/doctor_patients/search?text=${
       document.getElementById("searchinput").value
     }`
   )

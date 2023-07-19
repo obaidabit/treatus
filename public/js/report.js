@@ -40,7 +40,7 @@ function generateCalendarMatrix(year, month) {
 function getMedicines(patient_id) {
   document.getElementById("patmedicines").innerHTML = "";
   fetch(
-    `medicines/patient/disease/info?patientId=${patient_id}&patientDiseaseId=${
+    `medicines/patientDiseaseMedicines?patientId=${patient_id}&patientDiseaseId=${
       document.getElementById("patdiseases").value
     }`
   )
@@ -90,7 +90,7 @@ function getDoctors(patient_id) {
   document.getElementById("doctorname").innerHTML = "";
   const doctorselected = document.createElement("option");
   document.getElementById("doctorname").appendChild(doctorselected);
-  fetch(`doctors/patient?patientId=${patient_id}`)
+  fetch(`doctors/patient_doctors?patientId=${patient_id}`)
     .then((res) => res.json())
     .then((data) => {
       data.forEach((dis) => {

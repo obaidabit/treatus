@@ -1,5 +1,11 @@
 const jwt = require("jsonwebtoken");
 
+//  Bring the encoded token from cookies that the user was sent
+//  verify it and decode
+//  and put the token in the request object
+//  Run the Route
+//  decoded: is the user information that requests the Route
+//  next: function that executes new middleware or Route
 function checkLogin(req, res, next) {
   const token = req.cookies["access-token"];
 

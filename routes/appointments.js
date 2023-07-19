@@ -1,12 +1,6 @@
 const express = require("express");
 const pool = require("../database");
-const {
-  authDoctorInfo,
-  authPatientInfo,
-  authPatients,
-  authDoctors,
-  authPatientDoctors,
-} = require("../middleware/auth");
+const { authPatients, authDoctors } = require("../middleware/auth");
 const router = express.Router();
 const moment = require("moment-timezone");
 const {
@@ -16,7 +10,7 @@ const {
 const END_TIME = 16;
 const START_TIME = 9;
 
-router.get("/today", authDoctors, async (req, res) => {
+router.get("/todayAppointments", authDoctors, async (req, res) => {
   try {
     const result = await pool.query(
       `SELECT a.*,p.full_name FROM appointment AS a 
@@ -78,16 +72,21 @@ router.get("/info/appointmentsNotes", async (req, res) => {
     if (!req.query.doctorId || !req.query.patientId) {
       return res.status(400).json({ msg: "Missing Data" });
     }
+    let patientId;
+
+    if (req.query.patientId != "null") {
+      patientId = req.query.patientId;
+    } else {
+      patientId = req.token.id;
+    }
+
     const result = await pool.query(
       `
         SELECT a.id,a.notes,a.date,d.full_name FROM appointment AS a
         INNER JOIN doctor AS d ON d.id = a.doctor_id
         WHERE a.doctor_id = ? AND a.patient_id = ? AND a.notes <> ''
         `,
-      [
-        req.query.doctorId,
-        req.query.patientId != "null" ? req.query.patientId : req.token.id,
-      ]
+      [req.query.doctorId, patientId]
     );
     if (result[0].length === 0)
       return res.status(400).json({ msg: "No Appointments found" });
@@ -195,7 +194,7 @@ router.get("/getAvailableAppointments", authPatients, async (req, res) => {
     return res.status(400).json({ msg: "Please select a Date" });
   }
 
-  if (isNaN(parseInt(req.query.doctor_id))) {
+  if (!parseInt(req.query.doctor_id)) {
     return res.status(400).json({ msg: "Wrong doctor id" });
   }
 

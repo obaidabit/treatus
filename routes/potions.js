@@ -1,6 +1,7 @@
 const express = require("express");
 const pool = require("../database");
 const moment = require("moment-timezone");
+
 const {
   schedulePotionNotification,
   deleteNotification,
@@ -8,7 +9,6 @@ const {
 } = require("./cron");
 
 const {
-  authPatientInfo,
   authDoctors,
   authPatientDoctors,
   authPatients,
@@ -31,32 +31,36 @@ router.get("/info", async (req, res) => {
     res.status(500).json({ msg: "Something went wrong please try again" });
   }
 });
+//STEP 1.1: brings potion information for the specific patient and
+//          chicking two cases
+//          If the potion day is yes or day no I'm checking it is taken today or yesterday
+//          If the potion is daily or custom I'am chicking the potion taken the same day
 router.get("/todayPotions", authPatients, async (req, res) => {
   try {
     const result = await pool.query(
       `
-      SELECT p.*,m.name FROM potion AS p
+      SELECT potion.*,m.name FROM potion AS potion
       INNER JOIN patient_medicine AS pm 
-      ON p.medicine_id = pm.id 
+      ON potion.medicine_id = pm.id 
       INNER JOIN medicine AS m 
       ON pm.medicine_id = m.id 
-      WHERE p.patient_id = ?
+      WHERE potion.patient_id = ?
       AND ((
-        p.days = "every other day" 
+        potion.days = "every other day" 
         AND NOT EXISTS(
           SELECT ppl.* FROM patient_potion_log AS ppl 
           WHERE (
             ppl.date = str_to_date(?,'%d/%m/%Y')
             OR ppl.date = str_to_date(?,'%d/%m/%Y')
           )
-          AND ppl.potion_id = p.id
+          AND ppl.potion_id = potion.id
         )
       ) OR (
-			  p.days <> "every other day"
+			  potion.days <> "every other day"
         AND NOT EXISTS (
           SELECT ppl.* FROM patient_potion_log AS ppl 
           WHERE ppl.date = str_to_date(?,'%d/%m/%Y')
-          AND ppl.potion_id = p.id
+          AND ppl.potion_id = potion.id
 			  )
       ))
     `,
@@ -99,10 +103,10 @@ router.get("/medicine", authPatientDoctors, async (req, res) => {
   try {
     const result = await pool.query(
       `
-      SELECT p.* FROM potion AS p 
+      SELECT potion.* FROM potion AS potion
       INNER JOIN patient_medicine AS pm
-      ON p.medicine_id = pm.id
-      WHERE p.patient_id = ? AND pm.medicine_id = ?
+      ON potion.medicine_id = pm.id
+      WHERE potion.patient_id = ? AND pm.medicine_id = ?
     `,
       [req.query.patientId, req.query.medicineId]
     );
@@ -156,7 +160,10 @@ router.post("/addNewPotion", authDoctors, async (req, res) => {
         req.body.pillNumber,
       ]
     );
-
+    //STEP 2.1: bring medicine information for the specific patient
+    //          and checking if the query gives information
+    //          and take the first result
+    //          and preparing to send the notification for this potion
     const medicineData = await connection.query(
       `
       SELECT m.* FROM medicine AS m
@@ -166,8 +173,15 @@ router.post("/addNewPotion", authDoctors, async (req, res) => {
       [req.body.patientMedicineId]
     );
     await connection.commit();
-    let medicineName =
-      medicineData[0].length > 0 ? medicineData[0][0].name : "";
+
+    let medicineName;
+
+    if (medicineData[0].length > 0) {
+      medicineName = medicineData[0][0].name;
+    } else {
+      medicineName = "";
+    }
+
     schedulePotionNotification(
       {
         id: result[0].insertId,
@@ -213,17 +227,26 @@ router.post("/updatePotion", authDoctors, async (req, res) => {
 
     const potionData = await connection.query(
       `
-      SELECT * FROM potion AS p
-      INNER JOIN patient_medicine AS pm ON pm.id = p.medicine_id
+      SELECT * FROM potion AS potion
+      INNER JOIN patient_medicine AS pm ON pm.id = potion.medicine_id
       INNER JOIN medicine AS m ON m.id = pm.medicine_id
-      WHERE p.id = ?
+      WHERE potion.id = ?
     `,
       [req.body.potionId]
     );
 
     await connection.commit();
+    //STEP 2.1: bring potin information for the specific patient
+    //          and checking if the query gives information
+    //          and take the first result
+    //          and update the notification for this potion
 
-    let potionName = potionData[0].length > 0 ? potionData[0][0].name : "";
+    let potionName;
+    if (potionData[0].length > 0) {
+      potionName = potionData[0][0].name;
+    } else {
+      potionName = "";
+    }
 
     updatePotionNotification(
       parseInt(req.body.potionId),
@@ -248,20 +271,25 @@ router.delete("/deletePotion", authDoctors, async (req, res) => {
   }
 
   try {
-    const results = await Promise.all([
-      pool.query("DELETE FROM patient_potion_log WHERE potion_id = ?;", [
-        req.body.potionId,
-      ]),
-      pool.query(
-        `
-          DELETE FROM potion WHERE id = ?
-        `,
-        [req.body.potionId]
-      ),
-    ]);
+    const connection = await pool.getConnection();
+    await connection.beginTransaction();
+
+    await connection.query(
+      "DELETE FROM patient_potion_log WHERE potion_id = ?;",
+      [req.body.potionId]
+    );
+
+    const dResult = await connection.query(
+      `
+        DELETE FROM potion WHERE id = ?
+      `,
+      [req.body.potionId]
+    );
+
+    await connection.commit();
 
     deleteNotification(parseInt(req.body.potionId));
-    res.json(results);
+    res.json(dResult);
   } catch (error) {
     console.error(error);
     res.status(500).json({ msg: "Something went wrong please try again" });

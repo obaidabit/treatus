@@ -1,12 +1,18 @@
 const express = require("express");
 const Joi = require("joi");
+//STEP 1.1: Create a router responsible for routes
 const router = express.Router();
+//STEP 1.2: import a Pool from the Database file
 const pool = require("../database");
+//STEP 1.3: import a module from Node.js that deals with Operating System
 const os = require("os");
 const path = require("path");
+//STEP 1.4: import a module from Node.js that deals with File System
 const fs = require("fs");
 const bcrypt = require("bcrypt");
 const saltRounds = 10;
+//STEP 2.1: import a multer Library that is responsible for dealing with user-uploaded files to the server
+//STEP 2.2: Create an object that helps multer library how to save the file
 const multer = require("multer");
 const storage = multer.diskStorage({
   destination: (req, file, callBack) => {
@@ -19,16 +25,13 @@ const storage = multer.diskStorage({
     );
   },
 });
-
+//STEP 2.3: Create an object from multer library from the Storage object that is helping how to Save file uploaded
 const upload = multer({ storage: storage });
-const {
-  authDoctors,
-  authPatientDoctors,
-  authPatientInfo,
-  authDoctorInfo,
-  authPatients,
-} = require("../middleware/auth");
 
+const { authDoctors, authPatients } = require("../middleware/auth");
+
+//STEP 3.1: import uploadcare library and create an object from it
+//          reading the image file and upload
 async function uploadImg(imgPath) {
   const uploadClient = await import("@uploadcare/upload-client");
   const client = new uploadClient.UploadClient({
@@ -38,7 +41,9 @@ async function uploadImg(imgPath) {
   const uploadResult = await client.uploadFile(file);
   return uploadResult;
 }
-
+// STEP 4.1: Creating a route with specific doctor permission that returns the patient's information
+//           and if his patient or not
+//           Token contains user information who requests the Route
 router.get("/latest", authDoctors, async (req, res) => {
   try {
     const result = await pool.query(
@@ -57,6 +62,8 @@ router.get("/latest", authDoctors, async (req, res) => {
   }
 });
 
+// STEP: 5.1: a Route that gives patient information by id with only doctors' permissions
+
 router.get("/info", authDoctors, async (req, res) => {
   try {
     const result = await pool.query("SELECT * FROM patient WHERE id=?", [
@@ -70,7 +77,9 @@ router.get("/info", authDoctors, async (req, res) => {
   }
 });
 
-router.get("/info/my", authPatients, async (req, res) => {
+//STEP: 6.1: a Route that gives patient information by id with only patient permissions
+
+router.get("/info/myinfo", authPatients, async (req, res) => {
   try {
     const result = await pool.query("SELECT * FROM patient WHERE id=?", [
       req.token.id,
@@ -94,7 +103,8 @@ const updateSchema = Joi.object({
   address: Joi.string().min(5).max(200),
   email: Joi.string().email().required(),
 });
-
+//STEP 7.1: a Route responsible for checking and updating patient information
+//         and uploading an image for him
 router.post(
   "/update",
   [authPatients, upload.single("image")],
@@ -181,7 +191,7 @@ router.post(
     }
 
     try {
-      const result = await pool.query(sqlUpdate, values);
+      await pool.query(sqlUpdate, values);
       res.redirect("/profile");
     } catch (error) {
       console.error(error);
@@ -189,8 +199,10 @@ router.post(
     }
   }
 );
-
-router.get("/all/search", authDoctors, async (req, res) => {
+//STEP 8.1:Creating a route with specific doctor permission
+//         and search for the patient by name and returns the patient's information
+//         and if his patient or not
+router.get("/allpatients/search", authDoctors, async (req, res) => {
   if (!req.query.text) {
     res.status(400).json({ msg: "Nothing to search" });
     return;
@@ -216,7 +228,7 @@ router.get("/all/search", authDoctors, async (req, res) => {
   }
 });
 
-router.get("/doctor/search/", authDoctors, async (req, res) => {
+router.get("/doctor_patients/search/", authDoctors, async (req, res) => {
   try {
     const result = await pool.query(
       `SELECT p.* FROM patient AS p 
@@ -234,7 +246,7 @@ router.get("/doctor/search/", authDoctors, async (req, res) => {
   }
 });
 
-router.get("/doctor/mypatients/", authDoctors, async (req, res) => {
+router.get("/doctor_patients/", authDoctors, async (req, res) => {
   try {
     const result = await pool.query(
       `SELECT p.* FROM patient AS p 

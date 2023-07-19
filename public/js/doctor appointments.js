@@ -44,7 +44,7 @@ function viewappointments(data) {
   });
 }
 
-fetch("appointments/today")
+fetch("appointments/todayAppointments")
   .then((res) => res.json())
   .then((data) => {
     viewappointments(data);
@@ -53,7 +53,7 @@ fetch("appointments/today")
 document.getElementById("searchpat").addEventListener("click", () => {
   document.getElementById("patientname").innerHTML = "";
   const patientname = document.getElementById("inputpatientname").value;
-  fetch(`patients/doctor/search?text=${patientname}`)
+  fetch(`patients/doctor_patients/search?text=${patientname}`)
     .then((res) => res.json())
     .then((data) => {
       data.forEach((element) => {

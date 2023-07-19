@@ -1,5 +1,5 @@
 function getprofilepat() {
-  fetch("patients/info/my")
+  fetch("patients/info/myinfo")
     .then((res) => res.json())
     .then((data) => {
       document.getElementById("full_name").value = data.full_name;

@@ -2,6 +2,9 @@ const express = require("express");
 const path = require("path");
 const router = express.Router();
 
+//    sendFile function send the file that needs a path
+//    and join function mix many strings to give the path correctly
+//    Token contains user information who requests the route
 router.get("/home", (req, res) => {
   if (req.token.type === "doctor") {
     res.sendFile(path.join(__dirname, "../public", "Doctor Home.html"));

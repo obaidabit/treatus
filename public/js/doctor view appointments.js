@@ -166,7 +166,7 @@ function getPotions(mid, medname) {
 }
 function getMedicines(patient_id) {
   document.getElementById("patmedicines").innerHTML = "";
-  fetch(`medicines/patient/info?patientId=${patient_id}`)
+  fetch(`medicines/patientMedicine?patientId=${patient_id}`)
     .then((res) => res.json())
     .then((medicines) => {
       medicines.forEach((element) => {
@@ -310,7 +310,7 @@ document.getElementById("addDisease").addEventListener("click", () => {
 
 document.getElementById("searchmid").addEventListener("click", () => {
   fetch(
-    `medicines/patient/search?text=${
+    `medicines/patientMedicines/search?text=${
       document.getElementById("Medicinename").value
     }`
   )

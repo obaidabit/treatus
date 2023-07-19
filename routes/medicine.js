@@ -1,11 +1,6 @@
 const express = require("express");
 const pool = require("../database");
-const {
-  authPatientInfo,
-  authDoctors,
-  authPatientDoctors,
-  authPatients,
-} = require("../middleware/auth");
+const { authDoctors, authPatients } = require("../middleware/auth");
 
 const router = express.Router();
 
@@ -34,7 +29,7 @@ router.get("/search", async (req, res) => {
   }
 });
 
-router.get("/patient/search", authDoctors, async (req, res) => {
+router.get("/patientMedicines/search", authDoctors, async (req, res) => {
   try {
     const result = await pool.query(
       `
@@ -57,6 +52,121 @@ router.get("/patient/search", authDoctors, async (req, res) => {
   }
 });
 
+router.get("/patientMedicines/", authDoctors, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `
+      SELECT m.*,pm.id AS patient_medicine_id FROM medicine AS m
+      INNER JOIN patient_medicine AS pm 
+      ON m.id = pm.medicine_id 
+      WHERE pm.patient_id = ?
+      `,
+      [req.query.patientId]
+    );
+
+    res.json(result[0]);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ msg: "Something went wrong please try again" });
+  }
+});
+
+router.get("/patientDiseaseMedicines", async (req, res) => {
+  let patientId;
+
+  if (req.query.patientId != "null") {
+    patientId = req.query.patientId;
+  } else {
+    patientId = req.token.id;
+  }
+  try {
+    const result = await pool.query(
+      `
+      SELECT m.*,pm.id AS patient_medicine_id FROM medicine AS m
+      INNER JOIN patient_medicine AS pm 
+      ON m.id = pm.medicine_id 
+      INNER JOIN patient_disease_medicine AS pdm
+      ON pm.id = pdm.patient_medicine_id
+      WHERE pm.patient_id = ? AND pdm.patient_disease_id = ?
+      `,
+      [patientId, req.query.patientDiseaseId]
+    );
+
+    res.json(result[0]);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ msg: "Something went wrong please try again" });
+  }
+});
+
+router.get("/patientMedicinesAndPotions", authPatients, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `
+      SELECT m.*,
+        (
+          SELECT json_arrayagg(
+            json_merge(
+              json_object('id',id),
+              json_object('time',DATE_FORMAT(time,"%H:%i:%s")),
+              json_object('days',days),
+              json_object('pill_number',pill_number)
+            )
+          ) FROM potion AS potion WHERE potion.medicine_id = pm.id 
+          ) AS potions
+      FROM medicine AS m
+      INNER JOIN patient_medicine AS pm 
+      ON m.id = pm.medicine_id 
+      WHERE pm.patient_id = ?
+      `,
+      [req.token.id]
+    );
+
+    res.json(result[0]);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ msg: "Something went wrong please try again" });
+  }
+});
+
+router.get(
+  "/patientMedicinesAndPotions/search",
+  authPatients,
+  async (req, res) => {
+    try {
+      const result = await pool.query(
+        `
+      SELECT m.*,
+        (
+          SELECT json_arrayagg(
+            json_merge(
+              json_object('id',id),
+              json_object('time',DATE_FORMAT(time,"%H:%i:%s")),
+              json_object('days',days),
+              json_object('pill_number',pill_number)
+            )
+          ) FROM potion AS potion WHERE potion.medicine_id = pm.id 
+          ) AS potions
+      FROM medicine AS m
+      INNER JOIN patient_medicine AS pm 
+      ON m.id = pm.medicine_id 
+      WHERE pm.patient_id = ?
+      AND (
+        m.name LIKE CONCAT('%', ? ,'%') 
+        OR m.drug_use LIKE CONCAT('%', ? ,'%')
+      ) 
+      `,
+        [req.token.id, req.query.text, req.query.text]
+      );
+
+      res.json(result[0]);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ msg: "Something went wrong please try again" });
+    }
+  }
+);
+
 router.get("/:id", async (req, res) => {
   if (!req.params.id) {
     return res.status(400).json({ msg: "Missing Data" });
@@ -78,117 +188,8 @@ router.get("/:id", async (req, res) => {
     res.status(500).json({ msg: "Something went wrong please try again" });
   }
 });
-
-router.get("/patient/info/", authDoctors, async (req, res) => {
-  try {
-    const result = await pool.query(
-      `
-      SELECT m.*,pm.id AS patient_medicine_id FROM medicine AS m
-      INNER JOIN patient_medicine AS pm 
-      ON m.id = pm.medicine_id 
-      WHERE pm.patient_id = ?
-      `,
-      [req.query.patientId]
-    );
-
-    res.json(result[0]);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ msg: "Something went wrong please try again" });
-  }
-});
-
-router.get("/patient/disease/info", async (req, res) => {
-  try {
-    const result = await pool.query(
-      `
-      SELECT m.*,pm.id AS patient_medicine_id FROM medicine AS m
-      INNER JOIN patient_medicine AS pm 
-      ON m.id = pm.medicine_id 
-      INNER JOIN patient_disease_medicine AS pdm
-      ON pm.id = pdm.patient_medicine_id
-      WHERE pm.patient_id = ? AND pdm.patient_disease_id = ?
-      `,
-      [
-        req.query.patientId != "null" ? req.query.patientId : req.token.id,
-        req.query.patientDiseaseId,
-      ]
-    );
-
-    res.json(result[0]);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ msg: "Something went wrong please try again" });
-  }
-});
-
-router.get("/patient/mymedicine", authPatients, async (req, res) => {
-  try {
-    const result = await pool.query(
-      `
-      SELECT m.*,
-        (
-          SELECT json_arrayagg(
-            json_merge(
-              json_object('id',id),
-              json_object('time',DATE_FORMAT(time,"%H:%i:%s")),
-              json_object('days',days),
-              json_object('pill_number',pill_number)
-            )
-          ) FROM potion AS p WHERE p.medicine_id = pm.id 
-          ) AS potions
-      FROM medicine AS m
-      INNER JOIN patient_medicine AS pm 
-      ON m.id = pm.medicine_id 
-      WHERE pm.patient_id = ?
-      `,
-      [req.token.id]
-    );
-
-    res.json(result[0]);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ msg: "Something went wrong please try again" });
-  }
-});
-
-router.get("/patient/info/search", authPatients, async (req, res) => {
-  // if (!req.query.text) {
-  //   return res.status(400).json({ msg: "Nothing to search" });
-  // }
-  try {
-    const result = await pool.query(
-      `
-      SELECT m.*,
-        (
-          SELECT json_arrayagg(
-            json_merge(
-              json_object('id',id),
-              json_object('time',DATE_FORMAT(time,"%H:%i:%s")),
-              json_object('days',days),
-              json_object('pill_number',pill_number)
-            )
-          ) FROM potion AS p WHERE p.medicine_id = pm.id 
-          ) AS potions
-      FROM medicine AS m
-      INNER JOIN patient_medicine AS pm 
-      ON m.id = pm.medicine_id 
-      WHERE pm.patient_id = ?
-      AND (
-        m.name LIKE CONCAT('%', ? ,'%') 
-        OR m.drug_use LIKE CONCAT('%', ? ,'%')
-      ) 
-      `,
-      [req.token.id, req.query.text, req.query.text]
-    );
-
-    res.json(result[0]);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ msg: "Something went wrong please try again" });
-  }
-});
-
+//STEP 1.1: After inserting the first query the result variable contains the id that generated
+//          and use it on the rest of the following queries
 router.post("/addNewMedicine", authDoctors, async (req, res) => {
   if (
     !req.body.medicineId ||

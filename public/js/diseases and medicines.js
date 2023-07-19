@@ -53,7 +53,7 @@ function showMedicines(data) {
   });
 }
 
-fetch("medicines/patient/mymedicine")
+fetch("medicines/patientMedicinesAndPotions")
   .then((res) => res.json())
   .then((data) => {
     showMedicines(data);
@@ -61,7 +61,7 @@ fetch("medicines/patient/mymedicine")
 
 document.getElementById("searchmed").addEventListener("click", () => {
   fetch(
-    `medicines/patient/info/search?text=${
+    `medicines/patientMedicinesAndPotions/search?text=${
       document.getElementById("Medicinename").value
     }`
   )

@@ -1,4 +1,4 @@
-fetch("appointments/today")
+fetch("appointments/todayAppointments")
   .then((res) => res.json())
   .then((data) => {
     data.forEach((element) => {

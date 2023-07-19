@@ -32,7 +32,8 @@ const pagesURLs = [
   "/potions/",
   "/potion_logs/",
 ];
-
+// STEP: listen for push event, if it is a push event,
+//       get the data from the event and show the notification
 self.addEventListener("push", function (event) {
   if (event.data) {
     const data = event.data.json();
@@ -48,6 +49,12 @@ self.addEventListener("push", function (event) {
     console.log("This push event has no data.");
   }
 });
+// Listen for when a notification is clicked.
+// Get all the open browser windows controlled by this service worker.
+// Check if any window is already open and visible.
+// If yes, open the notification url in that window and focus it.
+// If no visible window found, open a new window with the notification url.
+// Keep the service worker alive until the notification click is handled.
 
 self.addEventListener("notificationclick", (event) => {
   event.waitUntil(
@@ -78,6 +85,7 @@ self.addEventListener("install", (event) => {
       .catch(console.error)
   );
 });
+
 self.addEventListener("activate", (event) => {
   console.log("Service worker activated");
   event.waitUntil(
@@ -90,7 +98,10 @@ self.addEventListener("activate", (event) => {
     })
   );
 });
-
+// SETP: with Every Request that client make, check if it is in cache then return result from cache,
+//       if not, fetch it from the web
+// SETP: check if it is in pagesURLs, if yes, send message to all clients to reload page
+// SETP: if request is not in cache and not in pagesURLs, return offline page
 self.addEventListener("fetch", (event) => {
   console.log("Service worker fetching");
   event.respondWith(

@@ -9,17 +9,21 @@ const router = express.Router();
 
 let subscribers = [];
 
+//  Bring potions and patient subscriptions information from subscriptions and loop over every potion
+//  and pass it as a parameter to the function schedulePotionNotification
+//  that function prepare the notification to show up at the right time of the potion itself
+
 async function setupAllPatientNotifications() {
+  console.log("Notification setup started");
   try {
     const result = await pool.query(
       `
-      SELECT s.*,p.id as potionId,p.time,p.days,m.name,p.pill_number FROM subscriptions AS s
-      INNER JOIN potion AS p ON s.patient_id = p.patient_id 
-      INNER JOIN patient_medicine AS pm ON p.medicine_id = pm.id
+      SELECT s.*,potion.id as potionId,potion.time,potion.days,m.name,potion.pill_number FROM subscriptions AS s
+      INNER JOIN potion AS potion ON s.patient_id = potion.patient_id 
+      INNER JOIN patient_medicine AS pm ON potion.medicine_id = pm.id
       INNER JOIN medicine AS m ON pm.medicine_id = m.id 
       `
     );
-
     const appResult = await pool.query(
       `
       SELECT * FROM appointment
@@ -27,6 +31,7 @@ async function setupAllPatientNotifications() {
     );
 
     for (let potion of result[0]) {
+      console.log("Schedule potion notification, CRON JOB");
       schedulePotionNotification(
         {
           ...potion,
@@ -45,6 +50,10 @@ async function setupAllPatientNotifications() {
 
 setupAllPatientNotifications();
 
+//  the patient send the request to the server to record him in the server to respond notifications
+//  endpoint the url of the patient and key the unique of the patient
+//  the key is two parts p256dh and auth
+
 router.post("/", authPatients, async (req, res) => {
   const subscriptionData = req.body;
   subscribers.push(subscriptionData);
@@ -55,7 +64,7 @@ router.post("/", authPatients, async (req, res) => {
 
   try {
     const result = await pool.query(
-      "SELECT id FROM subscriptions WHERE patient_id=? AND endpoint=?",
+      "SELECT id FROM subscriptions WHERE patient_id=? AND endpoint=?", // patient id
       [req.token.id, endpoint]
     );
 

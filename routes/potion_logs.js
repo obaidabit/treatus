@@ -2,28 +2,31 @@ const express = require("express");
 const pool = require("../database");
 const moment = require("moment-timezone");
 
-const {
-  authPatientInfo,
-  authPatientDoctors,
-  authPatients,
-} = require("../middleware/auth");
+const { authPatients } = require("../middleware/auth");
 const router = express.Router();
 
 router.get("/month", async (req, res) => {
   if (!req.query.medicineId || !req.query.patientId || !req.query.date) {
     return res.status(400).json({ msg: "Missing Data" });
   }
+  let patientId;
+
+  if (req.query.patientId != "null") {
+    patientId = req.query.patientId;
+  } else {
+    patientId = req.token.id;
+  }
 
   try {
     const result = await pool.query(
       `
-      SELECT p.*, ppl.date, ppl.time AS take_time FROM potion AS p
-      INNER JOIN patient_potion_log AS ppl ON p.id = ppl.potion_id
-      WHERE p.medicine_id = ? AND p.patient_id = ? AND ppl.date BETWEEN ? AND ?
+      SELECT potion.*, ppl.date, ppl.time AS take_time FROM potion AS potion
+      INNER JOIN patient_potion_log AS ppl ON potion.id = ppl.potion_id
+      WHERE potion.medicine_id = ? AND potion.patient_id = ? AND ppl.date BETWEEN ? AND ?
     `,
       [
         req.query.medicineId,
-        req.query.patientId != "null" ? req.query.patientId : req.token.id,
+        patientId,
         moment(req.query.date).startOf("month").format("YYYY-MM-DD"),
         moment(req.query.date).endOf("month").format("YYYY-MM-DD"),
       ]
