@@ -24,7 +24,10 @@ const potionsRouter = require("./routes/potions");
 const publicRouter = require("./routes/public");
 const potionLogsRouter = require("./routes/potion_logs");
 const uiRouter = require("./routes/ui");
-const subscribeRouter = require("./routes/subscribes");
+const {
+  subscribeRouter,
+  setupAllPatientNotifications,
+} = require("./routes/subscribes");
 
 // STEP 2.1: using middlewares that convert the JSON encoded data to the JavaScript object
 app.use(express.json());
@@ -94,3 +97,5 @@ app.use("/subscribe", subscribeRouter);
 app.listen(process.env.PORT || 5000, () => {
   console.log("Server is running");
 });
+
+setupAllPatientNotifications();

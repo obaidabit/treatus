@@ -31,7 +31,6 @@ async function setupAllPatientNotifications() {
     );
 
     for (let potion of result[0]) {
-      console.log("Schedule potion notification, CRON JOB");
       schedulePotionNotification(
         {
           ...potion,
@@ -48,7 +47,7 @@ async function setupAllPatientNotifications() {
   }
 }
 
-setupAllPatientNotifications();
+// setupAllPatientNotifications();
 
 //  the patient send the request to the server to record him in the server to respond notifications
 //  endpoint the url of the patient and key the unique of the patient
@@ -86,4 +85,7 @@ router.post("/", authPatients, async (req, res) => {
   }
 });
 
-module.exports = router;
+module.exports = {
+  router,
+  setupAllPatientNotifications,
+};

@@ -29,7 +29,7 @@ async function scheduleAppointmentNotification(appointment, patient_id) {
   const timeFormat = parseInt(hour) < 5 ? "PM" : "AM";
 
   if (typeof appointment.date === "string")
-    timeString = `${appointment.date} ${appointment.start_time} ${timeFormat}`;
+    timeString = `${appointment.date} ${appointment.start_time} ${timeFormat}`; // PM or AM
   else
     timeString = `${appointment.date.getFullYear()}-${
       appointment.date.getMonth() + 1
@@ -66,6 +66,7 @@ async function scheduleAppointmentNotification(appointment, patient_id) {
       url: "/appointments",
     };
 
+    console.log(time);
     cron.schedule(
       `${time.format("m")} ${time.format("H")} ${time.format(
         "D"
