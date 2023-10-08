@@ -24,10 +24,7 @@ const potionsRouter = require("./routes/potions");
 const publicRouter = require("./routes/public");
 const potionLogsRouter = require("./routes/potion_logs");
 const uiRouter = require("./routes/ui");
-const {
-  subscribeRouter,
-  setupAllPatientNotifications,
-} = require("./routes/subscribes");
+const subscribeRouter = require("./routes/subscribes");
 
 // STEP 2.1: using middlewares that convert the JSON encoded data to the JavaScript object
 app.use(express.json());
@@ -91,11 +88,11 @@ app.use("/medicines", medicineRouter);
 app.use("/diseases", diseaseRouter);
 app.use("/potions", potionsRouter);
 app.use("/potion_logs", potionLogsRouter);
-app.use("/subscribe", subscribeRouter);
+app.use("/subscribe", subscribeRouter.router);
 
 // STEP 1.3: Starting up the server and listen on the port from .env file or direct from 5000 port number
 app.listen(process.env.PORT || 5000, () => {
   console.log("Server is running");
 });
 
-setupAllPatientNotifications();
+subscribeRouter.setupAllPatientNotifications();
